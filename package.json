@@ -1,0 +1,13 @@
+{
+  "name": "ai-academic-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI that converts a student's available time + academic needs into a realistic, validated study timetable.",
+  "scripts": {
+    "dev": "npx --yes serve . -l 5173",
+    "start": "npm run dev",
+    "zip": "bash scripts/make-zip.sh"
+  },
+  "keywords": ["education", "planner", "timetable", "scheduling", "ai"],
+  "license": "MIT"
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Academic Planner</title>
+<meta name="description" content="Turns available time + academic needs into a realistic study timetable."/>
+<link rel="icon" href="public/favicon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="src/styles.css"/>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">🤖</div>
+      <div>
+        <h1>AI Academic Planner</h1>
+        <p>Turns available time + academic needs into a realistic study timetable — then checks it before you ever see it.</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="steps" id="steps">
+    <button data-step="0" class="on"><span class="n">1</span> Academics</button>
+    <button data-step="1"><span class="n">2</span> Availability</button>
+    <button data-step="2"><span class="n">3</span> Preferences</button>
+    <button data-step="3"><span class="n">4</span> Study Plan</button>
+  </nav>
+
+  <!-- ================= STEP 1 : ACADEMICS ================= -->
+  <section data-panel="0">
+    <div class="panel">
+      <h2>Academic data <span class="tag">Phase 1 &amp; 3</span></h2>
+      <p class="sub">Normally pulled from the school system. Edit anything — priorities recalculate live.</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th><th>Topic</th><th>Mastery %</th><th>Difficulty</th>
+              <th>Last studied</th><th>Exam in</th><th>Assignment</th><th>Prereq</th><th>Priority</th>
+            </tr>
+          </thead>
+          <tbody id="acadBody"></tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost sm" id="addTopic">+ Add topic</button>
+        <span class="stat">Topics <b id="topicCount">0</b></span>
+        <span class="stat">Weekly free time <b id="freeTotal">0h</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 2 : AVAILABILITY ================= -->
+  <section data-panel="1" class="hide">
+    <div class="panel">
+      <h2>When are you unavailable? <span class="tag">Phase 2</span></h2>
+      <p class="sub">Mark the blocks you're busy. Everything else inside your day window becomes study time.</p>
+      <div id="availBody"></div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 3 : PREFERENCES ================= -->
+  <section data-panel="2" class="hide">
+    <div class="panel">
+      <h2>Study preferences <span class="tag">Phase 1</span></h2>
+      <p class="sub">These constrain every generated plan.</p>
+      <div class="grid">
+        <div class="field"><label>Session length (minutes)</label>
+          <select id="pSession"><option>30</option><option>45</option><option selected>60</option><option>90</option></select></div>
+        <div class="field"><label>Break between sessions (minutes)</label>
+          <select id="pBreak"><option>5</option><option selected>15</option><option>20</option><option>30</option></select></div>
+        <div class="field"><label>Max study per day (minutes)</label>
+          <input type="number" id="pMaxDaily" min="30" max="600" step="15" value="180"></div>
+        <div class="field"><label>Max sessions per day</label>
+          <input type="number" id="pMaxSessions" min="1" max="8" value="3"></div>
+        <div class="field"><label>Preferred study period</label>
+          <select id="pPeriod">
+            <option value="any" selected>Any time</option>
+            <option value="morning">Morning (before 12)</option>
+            <option value="afternoon">Afternoon (12–5)</option>
+            <option value="evening">Evening (after 5)</option>
+          </select></div>
+        <div class="field"><label>Weekends available</label>
+          <select id="pWeekend"><option value="yes" selected>Yes</option><option value="no">No</option></select></div>
+        <div class="field"><label>Earliest study time</label><input type="time" id="pStart" value="06:00"></div>
+        <div class="field"><label>Latest study time</label><input type="time" id="pEnd" value="22:30"></div>
+      </div>
+      <div class="row" style="margin-top:22px">
+        <button class="btn" id="genBtn1">Generate my study plan →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 4 : PLAN ================= -->
+  <section data-panel="3" class="hide">
+    <div class="panel" id="planPanel">
+      <h2>Your AI study plan <span class="tag">Phase 4–7</span></h2>
+      <p class="sub" id="planSub">Generated from your availability, priorities and preferences.</p>
+      <div class="row" style="margin-bottom:20px">
+        <span class="stat">Sessions <b id="statSessions">0</b></span>
+        <span class="stat">Total time <b id="statMinutes">0h</b></span>
+        <span class="stat">Topics covered <b id="statTopics">0</b></span>
+      </div>
+      <div class="week" id="weekGrid"></div>
+      <div class="row" style="margin-top:22px">
+        <button class="btn ok" id="acceptBtn">✓ Accept plan</button>
+        <button class="btn ghost" id="regenBtn">↻ Regenerate</button>
+        <button class="btn ghost" id="backBtn">← Edit inputs</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Modify the plan <span class="tag">Phase 7</span></h2>
+      <p class="sub">Tell the planner what to change in plain language.</p>
+      <div class="cmd">
+        <input id="cmdInput" placeholder="e.g. I don't want to study on Wednesday">
+        <button class="btn" id="cmdBtn">Apply</button>
+      </div>
+      <p class="hint">Try: <code>move Mathematics to Saturday</code> · <code>I can only study after 7 PM</code> ·
+        <code>45 minute sessions</code> · <code>max 2 hours a day</code> · <code>more Physics</code> · <code>regenerate</code></p>
+    </div>
+
+    <div class="panel">
+      <h2>Validation report <span class="tag">Phase 5</span></h2>
+      <p class="sub">The scheduler checks the AI's output independently. Invalid plans get repaired before you see them.</p>
+      <div id="checks"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Priority ranking <span class="tag">Phase 3</span></h2>
+      <p class="sub">Why the planner chose what it chose.</p>
+      <div id="ranking"></div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+<script src="src/app.js"></script>
+</body>
+</html>
